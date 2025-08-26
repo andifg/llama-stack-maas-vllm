@@ -1,0 +1,14 @@
+services:
+  llama-stack-server:
+    build:
+      context: .
+      dockerfile: Containerfile
+    image: llamastack-m
+    # command: llama stack run /root/.llama/distributions/llamastack-m/llamastack-m-run.yaml
+    ports:
+      - "8321:8321"
+    environment:
+      - VLLM_URL=$VLLM_URL
+      - VLLM_API_TOKEN=$VLLM_API_TOKEN
+    # volumes:
+    #   - ./llamastack-m:/root/.llama/distributions/llamastack-m/

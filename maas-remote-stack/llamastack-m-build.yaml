@@ -1,0 +1,30 @@
+version: 2
+distribution_spec:
+  description: ''
+  providers:
+    inference:
+    - provider_type: remote::vllm
+    safety:
+    - provider_type: inline::prompt-guard
+    agents:
+    - provider_type: inline::meta-reference
+    batches:
+    - provider_type: inline::reference
+    vector_io:
+    - provider_type: inline::milvus
+    datasetio:
+    - provider_type: inline::localfs
+    scoring:
+    - provider_type: inline::basic
+    eval:
+    - provider_type: inline::meta-reference
+    post_training:
+    - provider_type: inline::torchtune
+    tool_runtime:
+    - provider_type: inline::rag-runtime
+    telemetry:
+    - provider_type: inline::meta-reference
+    files:
+    - provider_type: inline::localfs
+image_type: container
+additional_pip_packages: []

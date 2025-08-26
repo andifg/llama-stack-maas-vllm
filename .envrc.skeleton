@@ -1,0 +1,2 @@
+export VLLM_URL=<url>
+export VLLM_API_TOKEN=<token>

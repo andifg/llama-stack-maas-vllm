@@ -1,0 +1,67 @@
+version: 2
+image_name: llamastack-m
+container_image: llamastack-m
+apis:
+- inference
+- agents
+- vector_io
+- datasetio
+- tool_runtime
+- files
+- safety
+models:
+- metadata: {}
+  model_id: llama-4-scout-17b-16e-w4a16
+  provider_id: vllm
+  provider_model_id: llama-4-scout-17b-16e-w4a16
+  model_type: llm
+providers:
+  inference:
+  - provider_id: vllm
+    provider_type: remote::vllm
+    config:
+      url: ${env.VLLM_URL:=}
+      max_tokens: ${env.VLLM_MAX_TOKENS:=4096}
+      api_token: ${env.VLLM_API_TOKEN:=fake}
+      tls_verify: ${env.VLLM_TLS_VERIFY:=true}
+  agents:
+  - provider_id: meta-reference
+    provider_type: inline::meta-reference
+    config:
+      persistence_store:
+        type: sqlite
+        db_path: /.llama/agents_store.db
+      responses_store:
+        type: sqlite
+        db_path: /.llama/responses_store.db
+  vector_io:
+  - provider_id: milvus
+    provider_type: inline::milvus
+    config:
+      db_path: /.llama/milvus.db
+      kvstore:
+        type: sqlite
+        db_path: /.llama/milvus_registry.db
+  tool_runtime:
+  - provider_id: rag-runtime
+    provider_type: inline::rag-runtime
+    config: {}
+  files:
+  - provider_id: localfs
+    provider_type: inline::localfs
+    config:
+      storage_dir: /.llama/files
+      metadata_store:
+        type: sqlite
+        db_path: /.llama/files_metadata.db
+models: []
+shields: []
+vector_dbs: []
+datasets: []
+scoring_fns: []
+benchmarks: []
+tool_groups: []
+logging: null
+server:
+  port: 8321
+

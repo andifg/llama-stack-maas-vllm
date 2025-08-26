@@ -1,0 +1,17 @@
+FROM python:3.12-slim
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y        iputils-ping net-tools iproute2 dnsutils telnet        curl wget telnet git       procps psmisc lsof        traceroute        bubblewrap        gcc        && rm -rf /var/lib/apt/lists/*
+
+ENV UV_SYSTEM_PYTHON=1
+RUN pip install uv
+RUN uv pip install --no-cache  psycopg2-binary chardet transformers\[accelerate\] sentencepiece torchtune==0.5.0 pythainlp sqlalchemy\[asyncio\] numpy requests langdetect pypdf scikit-learn nltk pymilvus\>=2.4.10 mcp\>=1.8.1 asyncpg openai scipy transformers aiosqlite pillow pandas tree_sitter matplotlib torchao==0.8.0 tqdm opentelemetry-sdk redis emoji opentelemetry-exporter-otlp-proto-http pymongo torch aiosqlite fastapi fire httpx uvicorn opentelemetry-sdk opentelemetry-exporter-otlp-proto-http
+RUN uv pip install --no-cache  torch --index-url https://download.pytorch.org/whl/cpu
+RUN uv pip install --no-cache llama-stack
+RUN pip uninstall -y uv
+
+RUN mkdir -p /.llama /.cache && chmod -R g+rw /app /.llama /.cache
+
+COPY ./llamastack-m-run.yaml /.llama/llamastack-m-run.yaml
+
+ENTRYPOINT ["llama", "stack", "run", "/.llama/llamastack-m-run.yaml"]
