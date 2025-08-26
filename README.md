@@ -11,7 +11,7 @@
 0. Install dependencies & activate venv
 
 ```bash
-uv uv sync        
+uv sync        
 source .venv/bin/activate 
 ```
 
