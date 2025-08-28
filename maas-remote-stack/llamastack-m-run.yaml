@@ -54,14 +54,26 @@ providers:
       metadata_store:
         type: sqlite
         db_path: /.llama/files_metadata.db
-models: []
+  tool_runtime:
+  - provider_id: model-context-protocol
+    provider_type: remote::model-context-protocol
+    config: {}
+  - provider_id: tavily-search
+    provider_type: remote::tavily-search
+    config:
+      api_key: ${env.TAVILY_API_KEY}
+      max_results: 5
+tools:
+  - name: builtin::websearch
+    enabled: true
+tool_groups:
+- provider_id: tavily-search
+  toolgroup_id: builtin::websearch
 shields: []
 vector_dbs: []
 datasets: []
 scoring_fns: []
 benchmarks: []
-tool_groups: []
-logging: null
 server:
   port: 8321
 

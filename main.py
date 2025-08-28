@@ -66,11 +66,16 @@ print("After providers")
 print("Tools:")
 print(client.tools.list())
 print("After tools")
+print("Agents:")
+print(client.agents.list())
+print("After agents")
 
 agent = ReActAgent(
             client=client,
             model="llama-4-scout-17b-16e-w4a16",
-            tools=[],
+    tools=[
+        "builtin::websearch",
+    ],
             response_format={
                 "type": "json_schema",
                 "json_schema": ReActOutput.model_json_schema(),
@@ -81,7 +86,8 @@ agent = ReActAgent(
 user_prompts = [
     "How are you?",
     "My name is Pedro",
-    "What is my name?"
+    "What is my name?",
+    "search for the last result of FC Bayern Munich!"
 ]
 session_id = agent.create_session("web-session2")
 for prompt in user_prompts:
@@ -98,8 +104,9 @@ for prompt in user_prompts:
         session_id=session_id,
         stream=stream
     )
+
     if stream:
         for log in EventLogger().log(response):
-            log.print()
+            log.print() 
     else:
         step_printer(response.steps) # print the steps of an agent's response in a formatted way.
