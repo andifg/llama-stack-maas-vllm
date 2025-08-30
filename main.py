@@ -1,40 +1,31 @@
 from llama_stack_client.lib.agents.react.agent import ReActAgent
+from llama_stack_client.lib.agents.react.agent import get_tool_defs
 from llama_stack_client.lib.agents.react.tool_parser import ReActOutput
 from llama_stack_client.lib.agents.event_logger import EventLogger
 from llama_stack_client import LlamaStackClient
-import json
-from json import JSONDecodeError
-from rich.pretty import pprint
 from termcolor import cprint
 import os
+from maas_remote_stack.custom_prompts import REACT_AGENT_SYSTEM_PROMPT_TEMPLATE
 
+def create_react_instructions(client, tools):
+    """Create ReAct agent instructions by replacing placeholders with tool descriptions."""
+    
+    # Get tool definitions using the llama-stack client function
+    tool_defs = get_tool_defs(client, tools, ())
+    
+    # tool_names = ", ".join([x["name"] for x in tool_defs])
+    # tool_descriptions = "\n".join([f"- {x['name']}: {x}" for x in tool_defs])
 
-def step_printer(steps):
-    """
-    Print the steps of an agent's response in a formatted way.
-    Note: stream need to be set to False to use this function.
-    Args:
-    steps: List of steps from an agent's response.
-    """
-    for i, step in enumerate(steps):
-        step_type = type(step).__name__
-        print("\n"+"-" * 10, f"📍 Step {i+1}: {step_type}","-" * 10)
-        if step_type == "ToolExecutionStep":
-            print("🔧 Executing tool...")
-            try:
-                pprint(json.loads(step.tool_responses[0].content))
-            except (TypeError, JSONDecodeError):
-                # tool response is not a valid JSON object
-                pprint(step.tool_responses[0].content)
-        else:
-            if step.api_model_response.content:
-                print("🤖 Model Response:")
-                cprint(f"{step.api_model_response.content}\n", "magenta")
-            elif step.api_model_response.tool_calls:
-                tool_call = step.api_model_response.tool_calls[0]
-                print("🛠️ Tool call Generated:")
-                cprint(f"Tool call: {tool_call.tool_name}, Arguments: {json.loads(tool_call.arguments_json)}", "magenta")
-    print("="*10, "Query processing completed","="*10,"\n")
+    # Format tool names and descriptions
+    tool_names = ", ".join([x["name"] for x in tool_defs])
+    tool_descriptions = "\n".join([f"- {x['name']}: {x}" for x in tool_defs])
+    
+    # Replace placeholders in the template
+    instruction = REACT_AGENT_SYSTEM_PROMPT_TEMPLATE.replace("<<tool_names>>", tool_names).replace(
+        "<<tool_descriptions>>", tool_descriptions
+    )
+    
+    return instruction
 
 
 stream = True
@@ -60,22 +51,15 @@ client = LlamaStackClient(
     base_url="http://localhost:8321"
 )
 
-print("Providers:")
-print(client.providers.list())
-print("After providers")
-print("Tools:")
-print(client.tools.list())
-print("After tools")
-print("Agents:")
-print(client.agents.list())
-print("After agents")
+tools = [
+    "builtin::websearch",
+]
 
 agent = ReActAgent(
             client=client,
             model="llama-4-scout-17b-16e-w4a16",
-    tools=[
-        "builtin::websearch",
-    ],
+            tools=tools,
+            instructions=create_react_instructions(client, tools),
             response_format={
                 "type": "json_schema",
                 "json_schema": ReActOutput.model_json_schema(),
@@ -84,10 +68,12 @@ agent = ReActAgent(
             enable_session_persistence=True
         )
 user_prompts = [
-    "How are you?",
-    "My name is Pedro",
-    "What is my name?",
-    "search for the last result of FC Bayern Munich!"
+    # "How are you?",
+    # "My name is Pedro",
+    # "What is my name?",
+    # "search for the last result of Borussia Dortmund!",
+    # "search for the current date today",
+    "Whats was the last game of FC Bayern Munich?"
 ]
 session_id = agent.create_session("web-session2")
 for prompt in user_prompts:
@@ -106,6 +92,14 @@ for prompt in user_prompts:
     )
 
     if stream:
+        # print("Streaming response:")
+        # print("="*100)
+        # for chunk in response:
+        #     print("*"*100)
+        #     print(chunk)
+        
+        # print("#"*100)
+
         for log in EventLogger().log(response):
             log.print() 
     else:
